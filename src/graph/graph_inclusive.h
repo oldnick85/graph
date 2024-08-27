@@ -2,7 +2,9 @@
 
 #pragma once
 
+#include <algorithm>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -42,6 +44,23 @@ class GraphInclusive : private TDirected, private TWeighted
         m_nodes.emplace(node->Id(), node);
     }
 
+    void Del(TNode* node)
+    {
+        GRAPH_DEBUG_ASSERT(node != nullptr, "Null node");
+        const auto node_it = m_nodes.find(node->Id());
+        if (node_it == m_nodes.end())
+            return;
+        GRAPH_DEBUG_ASSERT(node == node_it->second, "Wrong nodes in graph");
+        for (auto edge : node->Edges())
+        {
+            auto node2 = (edge->Nodes().first != node) ? edge->Nodes().first : edge->Nodes().second;
+            node2->DelEdge(edge);
+            m_edges.erase(edge);
+        }
+        m_nodes.erase(node_it);
+        delete node;
+    }
+
     /**
      * @brief Add edge
      * 
@@ -50,7 +69,7 @@ class GraphInclusive : private TDirected, private TWeighted
     void Add(TEdge* edge)
     {
         GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
-        m_edges.push_back(edge);
+        m_edges.insert(edge);
     }
 
     /**
@@ -125,9 +144,12 @@ class GraphInclusive : private TDirected, private TWeighted
         for (const auto& node_el : m_nodes)
         {
             const auto& node = node_el.second;
-            snprintf(strbuf.data(), strbuf.size(), "Node %s (%p)\n", node->ToStr().c_str(), node);
+            snprintf(strbuf.data(), strbuf.size(), "Node %s ", node->ToStr().c_str());
             str.append(strbuf.data());
+            str.append(ToStrNodeEdges(node));
+            str += "\n";
         }
+        /*
         for (const auto& edge : m_edges)
         {
             snprintf(strbuf.data(), strbuf.size(), "Edge %s --%s %s%s (%p)\n", edge->Nodes().first->ToStr().c_str(),
@@ -136,12 +158,35 @@ class GraphInclusive : private TDirected, private TWeighted
                      edge);
             str.append(strbuf.data());
         }
+        */
         return str;
     }
 
   private:
+    std::string ToStrNodeEdges(TNode* node) const
+    {
+        std::string str{"edges "};
+        for (const auto& edge : node->Edges())
+        {
+            if (edge->Nodes().first == node)
+            {
+                str += TDirected::GetDirected(edge) ? "->" : "";
+                str += edge->Nodes().second->ToStr();
+                str += TWeighted::GetWeight(edge) == 1.0 ? "" : std::to_string(TWeighted::GetWeight(edge));
+            }
+            else
+            {
+                str += TDirected::GetDirected(edge) ? "<-" : "";
+                str += edge->Nodes().first->ToStr();
+                str += TWeighted::GetWeight(edge) == 1.0 ? "" : std::to_string(TWeighted::GetWeight(edge));
+            }
+            str += " ";
+        }
+        return str;
+    }
+
     std::unordered_map<TNodeId, TNode*> m_nodes;
-    std::vector<TEdge*> m_edges;
+    std::unordered_set<TEdge*> m_edges;
 };
 
 }  // namespace GG

@@ -37,6 +37,19 @@ class Node
         m_edges.push_back(edge);
     }
 
+    void DelEdge(Edge<Node>* edge)
+    {
+        GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
+        std::vector<Edge<Node>*> edges;
+        edges.reserve(m_edges.size());
+        for (auto edge_ : m_edges)
+        {
+            if (edge_ != edge)
+                edges.push_back(edge_);
+        }
+        m_edges = std::move(edges);
+    }
+
     const std::vector<Edge<Node>*>& Edges() const { return m_edges; }
     const TNodeId& Id() const { return m_id; }
 

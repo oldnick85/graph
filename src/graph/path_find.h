@@ -134,7 +134,7 @@ class PathFindContext
     using GraphWave_t = GraphInclusive<PNode_t, PEdge_t, DirectedTrue<PEdge_t>, WeightedFalse<PEdge_t>>;
     using Forefront_t = Forefront<TNode>;
 
-    PathFindContext(Graph_t* graph, TNode* start) : m_graph(graph), m_start(start)
+    PathFindContext(const Graph_t* graph, TNode* start) : m_graph(graph), m_start(start)
     {
         GRAPH_DEBUG_ASSERT(m_graph != nullptr, "Null graph");
         GRAPH_DEBUG_ASSERT(m_start != nullptr, "Null start");
@@ -178,6 +178,27 @@ class PathFindContext
 
     bool Exhausted() const { return m_forefront.Empty(); }
 
+    float DistanceTo(TNode* target) const
+    {
+        auto pnode = m_wave.Find(target->Id());
+        if (pnode == nullptr)
+            return 0.0;
+        return pnode->Distance();
+    }
+
+    Path_t FindPathTo(TNode* target)
+    {
+        Path_t path;
+        while (not Exhausted())
+        {
+            Step();
+            path = std::move(PathTo(target));
+            if (path.Length() > 0)
+                break;
+        }
+        return path;
+    }
+
     Path_t PathTo(TNode* target) const
     {
         auto ptarget = m_wave.Find(target->Id());
@@ -205,8 +226,8 @@ class PathFindContext
     }
 
   private:
-    Graph_t* m_graph = nullptr;
-    TNode* m_start   = nullptr;
+    const Graph_t* m_graph = nullptr;
+    TNode* m_start         = nullptr;
 
     GraphWave_t m_wave;
     Forefront_t m_forefront;

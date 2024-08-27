@@ -2,35 +2,29 @@
 
 #include <array>
 
-#include <gtest/gtest.h>
-
 #include <area.h>
 #include <graph_inclusive.h>
 #include <path_find.h>
 #include <primitives.h>
 
 // NOLINTBEGIN
-TEST(GraphInclusive, Base)
+void Test_GraphInclusive_Base()
 {
     using Node_t = GG::Node<int>;
     using Edge_t = GG::Edge<Node_t>;
     GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>> graph;
     auto* node1 = new Node_t(1);
     graph.Add(node1);
-    ASSERT_EQ(graph.Find(1), node1);
-    ASSERT_EQ(graph.Find(1)->Id(), 1);
     auto* node2 = new Node_t(2);
     graph.Add(node2);
-    ASSERT_EQ(graph.Find(2), node2);
-    ASSERT_EQ(graph.Find(2)->Id(), 2);
     auto* edge12 = new Edge_t(node1, node2);
     graph.Add(edge12);
     node1->AddEdge(edge12);
     node2->AddEdge(edge12);
-    ASSERT_TRUE(graph.CheckCorrect());
+    printf("%s\n", graph.ToStr().c_str());
 }
 
-TEST(GraphInclusive, BasePathFind)
+void Test_GraphInclusive_BasePathFind()
 {
     using Node_t = GG::Node<int>;
     using Edge_t = GG::Edge<Node_t>;
@@ -47,12 +41,6 @@ TEST(GraphInclusive, BasePathFind)
     {
         node[i] = new Node_t(i);
         graph.Add(node[i]);
-    }
-
-    for (int i = 0; i < static_cast<int>(node.size()); ++i)
-    {
-        ASSERT_EQ(graph.Find(i), node[i]);
-        ASSERT_EQ(graph.Find(i)->Id(), i);
     }
 
     auto* edge03 = new Edge_t(node[0], node[3]);
@@ -110,92 +98,109 @@ TEST(GraphInclusive, BasePathFind)
     node[7]->AddEdge(edge78);
     node[8]->AddEdge(edge78);
 
-    ASSERT_TRUE(graph.CheckCorrect());
+    printf("%s\n", graph.ToStr().c_str());
 
     GG::PathFindContext path_find_context{&graph, node[1]};
-    ASSERT_FALSE(path_find_context.Exhausted());
+    printf("%s\n", path_find_context.ToStr().c_str());
 
     path_find_context.Step();
-    ASSERT_FALSE(path_find_context.Exhausted());
+    printf("%s\n", path_find_context.ToStr().c_str());
 
     path_find_context.Step();
-    ASSERT_FALSE(path_find_context.Exhausted());
+    printf("%s\n", path_find_context.ToStr().c_str());
 
     path_find_context.Step();
-    ASSERT_FALSE(path_find_context.Exhausted());
+    printf("%s\n", path_find_context.ToStr().c_str());
 
     path_find_context.Step();
-    ASSERT_TRUE(path_find_context.Exhausted());
+    printf("%s\n", path_find_context.ToStr().c_str());
 
     auto path = path_find_context.PathTo(node[8]);
-    ASSERT_EQ(path.Nodes().size(), 4);
-    auto path_it = path.Nodes().begin();
-    ASSERT_EQ(*path_it, node[1]);
-    ++path_it;
-    ASSERT_EQ(*path_it, node[5]);
-    ++path_it;
-    ASSERT_EQ(*path_it, node[7]);
-    ++path_it;
-    ASSERT_EQ(*path_it, node[8]);
+    printf("%s\n", path.ToStr().c_str());
 }
 
-TEST(Area2D, BaseMoore)
+void Test_Area2D_BaseMoore()
 {
     using Node_t = GG::Node<GG::Coord2D>;
     GG::Area2D<Node_t, GG::NeighborhoodMoore> area(GG::Coord2D(4, 3));
     area.SetPassable({1, 2}, true);
     area.SetPassable({2, 3}, true);
     area.SetPassable({2, 2}, true);
+    printf("%s\n", area.ToStrASCII().c_str());
+    printf("%s\n", area.Graph().ToStr().c_str());
     area.SetPassable({2, 3}, false);
+    printf("%s\n", area.ToStrASCII().c_str());
+    printf("%s\n", area.Graph().ToStr().c_str());
 
     area.SetPassableAll(true);
     area.SetPassable({0, 2}, false);
     area.SetPassable({1, 2}, false);
     area.SetPassable({3, 2}, false);
+    printf("%s\n", area.ToStrASCII().c_str());
+    printf("%s\n", area.Graph().ToStr().c_str());
     GG::PathFindContext path_find_context{&(area.Graph()), area.Graph().Find(GG::Coord2D(0, 0))};
     auto path = path_find_context.FindPathTo(area.Graph().Find(GG::Coord2D(4, 3)));
-    ASSERT_EQ(path.Length(), 5.0);
+    printf("%s\n", path.ToStr().c_str());
+    printf("%s\n", area.ToStrASCII(&path_find_context).c_str());
 }
 
-TEST(Area2D, BaseVonNeumann)
+void Test_Area2D_BaseVonNeumann()
 {
     using Node_t = GG::Node<GG::Coord2D>;
     GG::Area2D<Node_t, GG::NeighborhoodVonNeumann> area(GG::Coord2D(4, 3));
     area.SetPassable({1, 2}, true);
     area.SetPassable({2, 3}, true);
     area.SetPassable({2, 2}, true);
+    printf("%s\n", area.ToStrASCII().c_str());
+    printf("%s\n", area.Graph().ToStr().c_str());
     area.SetPassable({2, 3}, false);
+    printf("%s\n", area.ToStrASCII().c_str());
+    printf("%s\n", area.Graph().ToStr().c_str());
 
     area.SetPassableAll(true);
     area.SetPassable({0, 2}, false);
     area.SetPassable({1, 2}, false);
     area.SetPassable({3, 2}, false);
+    printf("%s\n", area.ToStrASCII().c_str());
+    printf("%s\n", area.Graph().ToStr().c_str());
     GG::PathFindContext path_find_context{&(area.Graph()), area.Graph().Find(GG::Coord2D(0, 0))};
     auto path = path_find_context.FindPathTo(area.Graph().Find(GG::Coord2D(4, 3)));
-    ASSERT_EQ(path.Length(), 8.0);
+    printf("%s\n", path.ToStr().c_str());
+    printf("%s\n", area.ToStrASCII(&path_find_context).c_str());
 }
 
-TEST(Area2D, BaseHex)
+void Test_Area2D_BaseHex()
 {
     using Node_t = GG::Node<GG::Coord2D>;
     GG::Area2D<Node_t, GG::NeighborhoodHex> area(GG::Coord2D(4, 3));
     area.SetPassable({1, 2}, true);
     area.SetPassable({2, 3}, true);
     area.SetPassable({2, 2}, true);
+    printf("%s\n", area.ToStrASCII().c_str());
+    printf("%s\n", area.Graph().ToStr().c_str());
     area.SetPassable({2, 3}, false);
+    printf("%s\n", area.ToStrASCII().c_str());
+    printf("%s\n", area.Graph().ToStr().c_str());
 
     area.SetPassableAll(true);
     area.SetPassable({0, 2}, false);
     area.SetPassable({1, 2}, false);
     area.SetPassable({3, 2}, false);
+    printf("%s\n", area.ToStrASCII().c_str());
+    printf("%s\n", area.Graph().ToStr().c_str());
     GG::PathFindContext path_find_context{&(area.Graph()), area.Graph().Find(GG::Coord2D(0, 0))};
     auto path = path_find_context.FindPathTo(area.Graph().Find(GG::Coord2D(4, 3)));
-    ASSERT_EQ(path.Length(), 7.0);
+    printf("%s\n", path.ToStr().c_str());
+    printf("%s\n", area.ToStrASCII(&path_find_context).c_str());
 }
 
-int main(int argc, char** argv)
+int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv)
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    Test_GraphInclusive_Base();
+    Test_GraphInclusive_BasePathFind();
+    Test_Area2D_BaseMoore();
+    Test_Area2D_BaseVonNeumann();
+    Test_Area2D_BaseHex();
+    return 0;
 }
 // NOLINTEND
