@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 
+#include "./common.h"
+
 namespace GG
 {
 
@@ -13,16 +15,6 @@ template <typename TNodeId>
 class Node;
 template <typename TNode>
 class Edge;
-
-std::string Id2Str(int id)
-{
-    return std::to_string(id);
-}
-
-std::string Id2Str(const std::string& id)
-{
-    return id;
-}
 
 template <typename TNodeId>
 class Node

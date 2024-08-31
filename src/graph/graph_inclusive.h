@@ -26,12 +26,15 @@ R return_type_of(R (*)(Args...));
  * @tparam TDirected directed graph property
  * @tparam TWeighted weighted graph property
  */
-template <typename TNode, typename TEdge, typename TDirected, typename TWeighted>
-class GraphInclusive : private TDirected, private TWeighted
+template <typename TNode, typename TEdge, typename TDirected, typename TWeighted, typename TNamed>
+class GraphInclusive : private TDirected, private TWeighted, private TNamed
 {
   public:
     using TNodeId = TNode::NodeId_t;
-    //using TNodeId = decltype(return_type_of(TNode::Id));
+
+    GraphInclusive() = default;
+
+    GraphInclusive(const std::string& name) : TNamed(name) {}
 
     /**
      * @brief Add node
@@ -42,6 +45,14 @@ class GraphInclusive : private TDirected, private TWeighted
     {
         GRAPH_DEBUG_ASSERT(node != nullptr, "Null node");
         m_nodes.emplace(node->Id(), node);
+    }
+
+    void MakeEdge(TNode* node1, TNode* node2, bool directed = false)
+    {
+        auto* edge = new TEdge(node1, node2, directed);
+        Add(edge);
+        node1->AddEdge(edge);
+        node2->AddEdge(edge);
     }
 
     void Del(TNode* node)
@@ -137,9 +148,35 @@ class GraphInclusive : private TDirected, private TWeighted
         m_edges.clear();
     }
 
+    std::string ToDOT() const
+    {
+        std::string str;
+        if (TDirected::Directed())
+            str += "di";
+        str += "graph ";
+        str += TNamed::GetName();
+        str += " {\n";
+        for (const auto& node_el : m_nodes)
+        {
+            const auto& node = node_el.second;
+            str += Id2Str(node->Id()) + ";\n";
+        }
+        for (const auto& edge : m_edges)
+        {
+            const auto node1           = edge->Nodes().first;
+            const auto node2           = edge->Nodes().second;
+            const std::string edge_str = TDirected::GetDirected(edge) ? " -> " : " -- ";
+            str += Id2Str(node1->Id()) + edge_str + Id2Str(node2->Id()) + ";\n";
+        }
+        str += "}\n";
+        return str;
+    }
+
     std::string ToStr() const
     {
-        std::string str{"GraphInclusive\n"};
+        std::string str{"GraphInclusive("};
+        str += TNamed::GetName();
+        str += ")\n";
         std::array<char, 256> strbuf;
         for (const auto& node_el : m_nodes)
         {
@@ -149,16 +186,6 @@ class GraphInclusive : private TDirected, private TWeighted
             str.append(ToStrNodeEdges(node));
             str += "\n";
         }
-        /*
-        for (const auto& edge : m_edges)
-        {
-            snprintf(strbuf.data(), strbuf.size(), "Edge %s --%s %s%s (%p)\n", edge->Nodes().first->ToStr().c_str(),
-                     (TDirected::GetDirected(edge)) ? ">" : "-", edge->Nodes().second->ToStr().c_str(),
-                     (TWeighted::GetWeight(edge) == 1.0 ? "" : std::to_string(TWeighted::GetWeight(edge)).c_str()),
-                     edge);
-            str.append(strbuf.data());
-        }
-        */
         return str;
     }
 

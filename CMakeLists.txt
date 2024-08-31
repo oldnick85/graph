@@ -27,4 +27,5 @@ set(CMAKE_CXX_CLANG_TIDY "clang-tidy;--config-file=${CMAKE_CURRENT_SOURCE_DIR}/.
 
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(example)
 add_subdirectory(doc)

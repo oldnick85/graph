@@ -123,15 +123,15 @@ class Forefront
     float m_max_distance = 0.0;
 };
 
-template <typename TNode, typename TEdge, typename TDirected, typename TWeighted>
+template <typename TNode, typename TEdge, typename TDirected, typename TWeighted, typename TNamed>
 class PathFindContext
 {
   public:
     using PNode_t     = PathFindNode<TNode>;
     using PEdge_t     = Edge<PNode_t>;
     using Path_t      = Path<TNode>;
-    using Graph_t     = GraphInclusive<TNode, TEdge, TDirected, TWeighted>;
-    using GraphWave_t = GraphInclusive<PNode_t, PEdge_t, DirectedTrue<PEdge_t>, WeightedFalse<PEdge_t>>;
+    using Graph_t     = GraphInclusive<TNode, TEdge, TDirected, TWeighted, TNamed>;
+    using GraphWave_t = GraphInclusive<PNode_t, PEdge_t, DirectedTrue<PEdge_t>, WeightedFalse<PEdge_t>, NamedFalse>;
     using Forefront_t = Forefront<TNode>;
 
     PathFindContext(const Graph_t* graph, TNode* start) : m_graph(graph), m_start(start)

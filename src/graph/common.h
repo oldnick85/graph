@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <string>
 #include <unordered_set>
 
 #undef GRAPH_DEBUG_CHECKS
@@ -16,4 +17,14 @@
 #endif
 
 namespace GG
-{}  // namespace GG
+{
+std::string Id2Str(int id)
+{
+    return std::to_string(id);
+}
+
+std::string Id2Str(const std::string& id)
+{
+    return id;
+}
+}  // namespace GG

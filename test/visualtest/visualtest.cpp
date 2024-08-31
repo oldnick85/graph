@@ -12,7 +12,7 @@ void Test_GraphInclusive_Base()
 {
     using Node_t = GG::Node<int>;
     using Edge_t = GG::Edge<Node_t>;
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>> graph;
+    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>, GG::NamedFalse> graph;
     auto* node1 = new Node_t(1);
     graph.Add(node1);
     auto* node2 = new Node_t(2);
@@ -22,6 +22,25 @@ void Test_GraphInclusive_Base()
     node1->AddEdge(edge12);
     node2->AddEdge(edge12);
     printf("%s\n", graph.ToStr().c_str());
+}
+
+void Test_GraphInclusive_DOT()
+{
+    using Node_t = GG::Node<std::string>;
+    using Edge_t = GG::Edge<Node_t>;
+    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>, GG::NamedFalse> graph;
+    auto* node_a = new Node_t("a");
+    graph.Add(node_a);
+    auto* node_b = new Node_t("b");
+    graph.Add(node_b);
+    graph.MakeEdge(node_a, node_b);
+    auto* node_c = new Node_t("c");
+    graph.Add(node_c);
+    auto* node_d = new Node_t("d");
+    graph.Add(node_d);
+    graph.MakeEdge(node_c, node_b);
+    graph.MakeEdge(node_b, node_d);
+    printf("%s\n", graph.ToDOT().c_str());
 }
 
 void Test_GraphInclusive_BasePathFind()
@@ -35,7 +54,7 @@ void Test_GraphInclusive_BasePathFind()
     *        \ |     \
     *          4 - 6 - 7 - 8
     */
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>> graph;
+    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>, GG::NamedFalse> graph;
     std::array<Node_t*, 10> node;
     for (int i = 0; i < static_cast<int>(node.size()); ++i)
     {
@@ -197,6 +216,7 @@ void Test_Area2D_BaseHex()
 int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv)
 {
     Test_GraphInclusive_Base();
+    Test_GraphInclusive_DOT();
     Test_GraphInclusive_BasePathFind();
     Test_Area2D_BaseMoore();
     Test_Area2D_BaseVonNeumann();

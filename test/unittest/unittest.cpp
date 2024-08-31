@@ -14,7 +14,7 @@ TEST(GraphInclusive, Base)
 {
     using Node_t = GG::Node<int>;
     using Edge_t = GG::Edge<Node_t>;
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>> graph;
+    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>, GG::NamedFalse> graph;
     auto* node1 = new Node_t(1);
     graph.Add(node1);
     ASSERT_EQ(graph.Find(1), node1);
@@ -41,7 +41,7 @@ TEST(GraphInclusive, BasePathFind)
     *        \ |     \
     *          4 - 6 - 7 - 8
     */
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>> graph;
+    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>, GG::NamedFalse> graph;
     std::array<Node_t*, 10> node;
     for (int i = 0; i < static_cast<int>(node.size()); ++i)
     {

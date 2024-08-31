@@ -187,8 +187,9 @@ class Area2D
         GRAPH_DEBUG_ASSERT(m_graph.CheckCorrect(), "Incorrect graph");
     }
 
-    std::string ToStrASCII(GG::PathFindContext<TNode, Edge<TNode>, DirectedFalse<Edge<TNode>>,
-                                               WeightedFalse<Edge<TNode>>>* path_find_context = nullptr) const
+    std::string ToStrASCII(
+        GG::PathFindContext<TNode, Edge<TNode>, DirectedFalse<Edge<TNode>>, WeightedFalse<Edge<TNode>>, NamedFalse>*
+            path_find_context = nullptr) const
     {
         std::string res;
         res.reserve(m_map.size() + m_max_coord.Y() + 1);
@@ -245,7 +246,7 @@ class Area2D
 
     Coord2D m_max_coord;
     std::vector<int> m_map;
-    GraphInclusive<TNode, Edge<TNode>, DirectedFalse<Edge<TNode>>, WeightedFalse<Edge<TNode>>> m_graph;
+    GraphInclusive<TNode, Edge<TNode>, DirectedFalse<Edge<TNode>>, WeightedFalse<Edge<TNode>>, NamedFalse> m_graph;
 };
 }  // namespace GG
 
