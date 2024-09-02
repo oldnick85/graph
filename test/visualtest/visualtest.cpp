@@ -141,7 +141,7 @@ void Test_GraphInclusive_BasePathFind()
 void Test_Area2D_BaseMoore()
 {
     using Node_t = GG::Node<GG::Coord2D>;
-    GG::Area2D<Node_t, GG::NeighborhoodMoore> area(GG::Coord2D(4, 3));
+    GG::Area2D<Node_t, GG::NeighborhoodMoore> area(GG::Range2D(GG::Coord2D(4, 3)));
     area.SetPassable({1, 2}, true);
     area.SetPassable({2, 3}, true);
     area.SetPassable({2, 2}, true);
@@ -166,7 +166,7 @@ void Test_Area2D_BaseMoore()
 void Test_Area2D_BaseVonNeumann()
 {
     using Node_t = GG::Node<GG::Coord2D>;
-    GG::Area2D<Node_t, GG::NeighborhoodVonNeumann> area(GG::Coord2D(4, 3));
+    GG::Area2D<Node_t, GG::NeighborhoodVonNeumann> area(GG::Range2D(GG::Coord2D(4, 3)));
     area.SetPassable({1, 2}, true);
     area.SetPassable({2, 3}, true);
     area.SetPassable({2, 2}, true);
@@ -191,7 +191,7 @@ void Test_Area2D_BaseVonNeumann()
 void Test_Area2D_BaseHex()
 {
     using Node_t = GG::Node<GG::Coord2D>;
-    GG::Area2D<Node_t, GG::NeighborhoodHex> area(GG::Coord2D(4, 3));
+    GG::Area2D<Node_t, GG::NeighborhoodHex> area(GG::Range2D(GG::Coord2D(4, 3)));
     area.SetPassable({1, 2}, true);
     area.SetPassable({2, 3}, true);
     area.SetPassable({2, 2}, true);

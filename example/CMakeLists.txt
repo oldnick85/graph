@@ -1,1 +1,2 @@
 add_subdirectory(collatz_conjecture_graph)
+add_subdirectory(warehouse_plan)

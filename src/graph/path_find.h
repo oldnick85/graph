@@ -186,6 +186,24 @@ class PathFindContext
         return pnode->Distance();
     }
 
+    void SpreadWave()
+    {
+        while (not Exhausted())
+        {
+            Step();
+        }
+    }
+
+    std::vector<TNode*> WaveNodes()
+    {
+        std::vector<TNode*> nodes;
+        auto pnodes = m_wave.Nodes();
+        nodes.reserve(pnodes.size());
+        for (const auto& pnode_it : pnodes)
+            nodes.push_back(pnode_it.second->BaseNode());
+        return nodes;
+    }
+
     Path_t FindPathTo(TNode* target)
     {
         Path_t path;

@@ -6,18 +6,16 @@
 #include <primitives.h>
 #include <cstdint>
 
-using Node_t  = GG::Node<int>;
+using Node_t  = GG::Node<uint64_t>;
 using Edge_t  = GG::Edge<Node_t>;
 using Graph_t = GG::GraphInclusive<Node_t, Edge_t, GG::DirectedTrue<Edge_t>, GG::WeightedFalse<Edge_t>, GG::NamedTrue>;
-
-// NOLINTBEGIN
 
 void CheckNumber(uint64_t num, Graph_t& graph)
 {
     if ((num < 1) or (num % 2 == 0))
         return;
 
-    auto node = graph.Find(num);
+    auto* node = graph.Find(num);
     if (node != nullptr)
         return;
 
@@ -28,7 +26,7 @@ void CheckNumber(uint64_t num, Graph_t& graph)
         return;
     }
 
-    auto prev_node = node;
+    auto* prev_node = node;
     while (num != 1)
     {
         if (num % 2 == 0)
@@ -71,10 +69,9 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv)
         return 1;
     }
 
-    const uint64_t n = std::stoll(argv[1]);
+    const uint64_t num = std::stoll(argv[1]);
     Graph_t graph{"COLLATZ"};
-    CheckNumbers(n, graph);
+    CheckNumbers(num, graph);
     printf("%s\n", graph.ToDOT().c_str());
     return 0;
 }
-// NOLINTEND

@@ -36,6 +36,14 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed
 
     GraphInclusive(const std::string& name) : TNamed(name) {}
 
+    template <class... Args>
+    TNode* MakeNode(Args... args)
+    {
+        auto node = new TNode(args...);
+        Add(node);
+        return node;
+    }
+
     /**
      * @brief Add node
      * 
@@ -47,12 +55,22 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed
         m_nodes.emplace(node->Id(), node);
     }
 
+    const std::unordered_map<TNodeId, TNode*>& Nodes() const { return m_nodes; }
+
     void MakeEdge(TNode* node1, TNode* node2, bool directed = false)
     {
         auto* edge = new TEdge(node1, node2, directed);
         Add(edge);
         node1->AddEdge(edge);
         node2->AddEdge(edge);
+    }
+
+    void Del(const TNodeId& id)
+    {
+        const auto node_it = m_nodes.find(id);
+        if (node_it == m_nodes.end())
+            return;
+        Del(node_it->second);
     }
 
     void Del(TNode* node)
@@ -81,6 +99,62 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed
     {
         GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
         m_edges.insert(edge);
+    }
+
+    void Del(TEdge* edge)
+    {
+        GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
+        auto node1 = edge->Nodes().first;
+        GRAPH_DEBUG_ASSERT(node1 != nullptr, "Null node in edge");
+        node1->DelEdge(edge);
+        auto node2 = edge->Nodes().second;
+        GRAPH_DEBUG_ASSERT(node2 != nullptr, "Null node in edge");
+        node2->DelEdge(edge);
+        m_edges.erase(edge);
+    }
+
+    void DelEdgesTo(TNode* node_from, TNode* node_to)
+    {
+        GRAPH_DEBUG_ASSERT(node_from != nullptr, "Null node from");
+        GRAPH_DEBUG_ASSERT(node_to != nullptr, "Null node to");
+        auto edges = node_from->Edges();
+        std::vector<TEdge> edges_to_delete;
+        edges_to_delete.reserve(edges.size());
+        for (auto edge : edges)
+        {
+            if (TDirected::GetDirected(edge))
+            {
+                if (edge->Nodes().second == node_to)
+                    edges_to_delete.push_back(edge);
+            }
+            else
+            {
+                if ((edge->Nodes().second == node_from) or (edge->Nodes().second == node_to))
+                    edges_to_delete.push_back(edge);
+            }
+        }
+        for (auto edge : edges_to_delete)
+        {
+            Del(edge);
+        }
+    }
+
+    void DelEdgesBetween(TNode* node1, TNode* node2)
+    {
+        GRAPH_DEBUG_ASSERT(node1 != nullptr, "Null node 1");
+        GRAPH_DEBUG_ASSERT(node2 != nullptr, "Null node 2");
+        auto edges = node1->Edges();
+        std::vector<TEdge> edges_to_delete;
+        edges_to_delete.reserve(edges.size());
+        for (auto edge : edges)
+        {
+            if ((edge->Nodes().second == node1) or (edge->Nodes().second == node2))
+                edges_to_delete.push_back(edge);
+        }
+        for (auto edge : edges_to_delete)
+        {
+            Del(edge);
+        }
     }
 
     /**
