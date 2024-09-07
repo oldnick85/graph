@@ -12,34 +12,80 @@ void Test_GraphInclusive_Base()
 {
     using Node_t = GG::Node<int>;
     using Edge_t = GG::Edge<Node_t>;
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>, GG::NamedFalse> graph;
-    auto* node1 = new Node_t(1);
-    graph.Add(node1);
-    auto* node2 = new Node_t(2);
-    graph.Add(node2);
-    auto* edge12 = new Edge_t(node1, node2);
-    graph.Add(edge12);
-    node1->AddEdge(edge12);
-    node2->AddEdge(edge12);
+    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>,
+                       GG::ConnectedComponentWatchFalse<Node_t, Edge_t>, GG::NamedFalse>
+        graph;
+    graph.MakeNode(1);
+    graph.MakeNode(2);
+    graph.MakeEdge(1, 2);
     printf("%s\n", graph.ToStr().c_str());
+}
+
+void Test_GraphInclusive_ConnectionComponent()
+{
+    using Node_t = GG::Node<int>;
+    using Edge_t = GG::Edge<Node_t>;
+    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>,
+                       GG::ConnectedComponentWatchTrue<Node_t, Edge_t>, GG::NamedFalse>
+        graph;
+    graph.MakeNode(1);
+    graph.MakeNode(2);
+    graph.MakeEdge(1, 2);
+    printf("%s\n", graph.ToStr().c_str());
+    printf("connected=%u\n", graph.ConnectedComponentsCount());
+
+    graph.MakeNode(3);
+    graph.MakeNode(4);
+    graph.MakeEdge(3, 4);
+    printf("%s\n", graph.ToStr().c_str());
+    printf("connected=%u\n", graph.ConnectedComponentsCount());
+
+    graph.MakeEdge(1, 3);
+    printf("%s\n", graph.ToStr().c_str());
+    printf("connected=%u\n", graph.ConnectedComponentsCount());
+
+    graph.MakeEdge(2, 4);
+    printf("%s\n", graph.ToStr().c_str());
+    printf("connected=%u\n", graph.ConnectedComponentsCount());
+
+    graph.DelEdgesBetween(3, 4);
+    printf("%s\n", graph.ToStr().c_str());
+    printf("connected=%u\n", graph.ConnectedComponentsCount());
+
+    graph.Del(2);
+    printf("%s\n", graph.ToStr().c_str());
+    printf("connected=%u\n", graph.ConnectedComponentsCount());
+
+    graph.DelEdgesBetween(3, 1);
+    printf("%s\n", graph.ToStr().c_str());
+    printf("connected=%u\n", graph.ConnectedComponentsCount());
+
+    graph.Del(4);
+    printf("%s\n", graph.ToStr().c_str());
+    printf("connected=%u\n", graph.ConnectedComponentsCount());
+
+    graph.Del(3);
+    printf("%s\n", graph.ToStr().c_str());
+    printf("connected=%u\n", graph.ConnectedComponentsCount());
+
+    graph.Del(1);
+    printf("%s\n", graph.ToStr().c_str());
+    printf("connected=%u\n", graph.ConnectedComponentsCount());
 }
 
 void Test_GraphInclusive_DOT()
 {
     using Node_t = GG::Node<std::string>;
     using Edge_t = GG::Edge<Node_t>;
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>, GG::NamedFalse> graph;
-    auto* node_a = new Node_t("a");
-    graph.Add(node_a);
-    auto* node_b = new Node_t("b");
-    graph.Add(node_b);
-    graph.MakeEdge(node_a, node_b);
-    auto* node_c = new Node_t("c");
-    graph.Add(node_c);
-    auto* node_d = new Node_t("d");
-    graph.Add(node_d);
-    graph.MakeEdge(node_c, node_b);
-    graph.MakeEdge(node_b, node_d);
+    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>,
+                       GG::ConnectedComponentWatchFalse<Node_t, Edge_t>, GG::NamedFalse>
+        graph;
+    graph.MakeNode("a");
+    graph.MakeNode("b");
+    graph.MakeEdge("a", "b");
+    graph.MakeNode("c");
+    graph.MakeNode("d");
+    graph.MakeEdge("c", "b");
     printf("%s\n", graph.ToDOT().c_str());
 }
 
@@ -54,68 +100,26 @@ void Test_GraphInclusive_BasePathFind()
     *        \ |     \
     *          4 - 6 - 7 - 8
     */
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>, GG::NamedFalse> graph;
+    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>,
+                       GG::ConnectedComponentWatchFalse<Node_t, Edge_t>, GG::NamedFalse>
+        graph;
     std::array<Node_t*, 10> node;
     for (int i = 0; i < static_cast<int>(node.size()); ++i)
     {
-        node[i] = new Node_t(i);
-        graph.Add(node[i]);
+        node[i] = graph.MakeNode(i);
     }
 
-    auto* edge03 = new Edge_t(node[0], node[3]);
-    graph.Add(edge03);
-    node[0]->AddEdge(edge03);
-    node[3]->AddEdge(edge03);
-
-    auto* edge12 = new Edge_t(node[1], node[2]);
-    graph.Add(edge12);
-    node[1]->AddEdge(edge12);
-    node[2]->AddEdge(edge12);
-
-    auto* edge13 = new Edge_t(node[1], node[3]);
-    graph.Add(edge13);
-    node[1]->AddEdge(edge13);
-    node[3]->AddEdge(edge13);
-
-    auto* edge14 = new Edge_t(node[1], node[4]);
-    graph.Add(edge14);
-    node[1]->AddEdge(edge14);
-    node[4]->AddEdge(edge14);
-
-    auto* edge15 = new Edge_t(node[1], node[5]);
-    graph.Add(edge15);
-    node[1]->AddEdge(edge15);
-    node[5]->AddEdge(edge15);
-
-    auto* edge29 = new Edge_t(node[2], node[9]);
-    graph.Add(edge29);
-    node[2]->AddEdge(edge29);
-    node[9]->AddEdge(edge29);
-
-    auto* edge34 = new Edge_t(node[3], node[4]);
-    graph.Add(edge34);
-    node[3]->AddEdge(edge34);
-    node[4]->AddEdge(edge34);
-
-    auto* edge46 = new Edge_t(node[4], node[6]);
-    graph.Add(edge46);
-    node[4]->AddEdge(edge46);
-    node[6]->AddEdge(edge46);
-
-    auto* edge57 = new Edge_t(node[5], node[7]);
-    graph.Add(edge57);
-    node[5]->AddEdge(edge57);
-    node[7]->AddEdge(edge57);
-
-    auto* edge67 = new Edge_t(node[6], node[7]);
-    graph.Add(edge67);
-    node[6]->AddEdge(edge67);
-    node[7]->AddEdge(edge67);
-
-    auto* edge78 = new Edge_t(node[7], node[8]);
-    graph.Add(edge78);
-    node[7]->AddEdge(edge78);
-    node[8]->AddEdge(edge78);
+    graph.MakeEdge(node[0], node[3]);
+    graph.MakeEdge(node[1], node[2]);
+    graph.MakeEdge(node[1], node[3]);
+    graph.MakeEdge(node[1], node[4]);
+    graph.MakeEdge(node[1], node[5]);
+    graph.MakeEdge(node[2], node[9]);
+    graph.MakeEdge(node[3], node[4]);
+    graph.MakeEdge(node[4], node[6]);
+    graph.MakeEdge(node[5], node[7]);
+    graph.MakeEdge(node[6], node[7]);
+    graph.MakeEdge(node[7], node[8]);
 
     printf("%s\n", graph.ToStr().c_str());
 
@@ -221,6 +225,7 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv)
     Test_Area2D_BaseMoore();
     Test_Area2D_BaseVonNeumann();
     Test_Area2D_BaseHex();
+    Test_GraphInclusive_ConnectionComponent();
     return 0;
 }
 // NOLINTEND

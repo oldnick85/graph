@@ -21,6 +21,18 @@ class Coord2D
     int X() const { return m_x; }
     int Y() const { return m_y; }
 
+    /**
+     * \~english
+     * @brief Get string description
+     * 
+     * @return string description
+     */
+    /**
+     * \~russian
+     * @brief Получить строковое описание
+     * 
+     * @return строковое описание
+     */
     std::string ToStr() const
     {
         std::string res;
@@ -40,43 +52,185 @@ class Coord2D
 class Range2D
 {
   public:
+    /**
+     * \~english
+     * @brief Constructor for Range2D object
+     * 
+     * @param max maximum coordinate
+     * @param min minimum coordinate
+     */
+    /**
+     * \~russian
+     * @brief Конструктор объекта Range2D
+     * 
+     * @param max максимальная координата
+     * @param min минимальная координата
+     */
     Range2D(const Coord2D& max, const Coord2D& min) : m_max(max), m_min(min)
     {
         GRAPH_DEBUG_ASSERT(m_max.X() >= m_min.X(), "Wrong X coordinate");
         GRAPH_DEBUG_ASSERT(m_max.Y() >= m_min.Y(), "Wrong Y coordinate");
     }
 
+    /**
+     * \~english
+     * @brief Constructor for Range2D object
+     * 
+     * @param max maximum coordinate
+     */
+    /**
+     * \~russian
+     * @brief Конструктор объекта Range2D
+     * 
+     * @param max максимальная координата
+     */
     explicit Range2D(const Coord2D& max) : m_max(max), m_min(Coord2D(0, 0))
     {
         GRAPH_DEBUG_ASSERT(m_max.X() >= m_min.X(), "Wrong X coordinate");
         GRAPH_DEBUG_ASSERT(m_max.Y() >= m_min.Y(), "Wrong Y coordinate");
     }
 
+    /**
+     * \~english
+     * @brief Get the number of coordinates in a range
+     * 
+     * @return number of coordinates in a range 
+     */
+    /**
+     * \~russian
+     * @brief Получить количество координат в диапазоне
+     * 
+     * @return количество координат в диапазоне
+     */
     uint Count() const { return (m_max.X() - m_min.X() + 1) * (m_max.Y() - m_min.Y() + 1); }
 
+    /**
+     * \~english
+     * @brief Get the maximum X coordinate
+     * 
+     * @return maximum X coordinate 
+     */
+    /**
+     * \~russian
+     * @brief Получить максимальную координату X
+     * 
+     * @return максимальная координата X
+     */
     int MaxX() const { return m_max.X(); }
+    /**
+     * \~english
+     * @brief Get the maximum Y coordinate
+     * 
+     * @return maximum Y coordinate 
+     */
+    /**
+     * \~russian
+     * @brief Получить максимальную координату Y
+     * 
+     * @return максимальная координата Y
+     */
     int MaxY() const { return m_max.Y(); }
+    /**
+     * \~english
+     * @brief Get the minimum X coordinate
+     * 
+     * @return minimum X coordinate 
+     */
+    /**
+     * \~russian
+     * @brief Получить минимальную координату X
+     * 
+     * @return минимальная координата X
+     */
     int MinX() const { return m_min.X(); }
+    /**
+     * \~english
+     * @brief Get the minimum Y coordinate
+     * 
+     * @return minimum Y coordinate 
+     */
+    /**
+     * \~russian
+     * @brief Получить минимальную координату Y
+     * 
+     * @return минимальная координата Y
+     */
     int MinY() const { return m_min.Y(); }
 
+    /**
+     * \~english
+     * @brief Check if a coordinate is in a range
+     * 
+     * @param coord coordinate
+     * @return true contained
+     * @return false not contained
+     */
+    /**
+     * \~russian
+     * @brief Проверить содержится ли координата в диапазоне
+     * 
+     * @param coord координата
+     * @return true содержится
+     * @return false не содержится
+     */
     bool Contains(const Coord2D& coord) const
     {
         return ((coord.X() >= m_min.X()) and (coord.X() <= m_max.X()) and (coord.Y() >= m_min.Y()) and
                 (coord.Y() <= m_max.Y()));
     }
 
+    /**
+     * \~english
+     * @brief Convert coordinate to linear view. Traverse first by Y then by X in increasing order
+     * 
+     * @param coord coordinate
+     * @return linear coordinate 
+     */
+    /**
+     * \~russian
+     * @brief Преобразовать координату в линейный вид. Обход сначала по Y потом по X в порядке увеличения
+     * 
+     * @param coord координата
+     * @return линейная координата
+     */
     uint CoordToLineByY(const Coord2D& coord) const
     {
         GRAPH_DEBUG_ASSERT(Contains(coord), "Wrong coordinates");
         return ((coord.X() - m_min.X()) * (m_max.Y() - m_min.Y() + 1) + coord.Y() - m_min.Y());
     }
 
+    /**
+     * \~english
+     * @brief Convert coordinate to linear view. Traverse first by X then by Y in increasing order
+     * 
+     * @param coord coordinate
+     * @return linear coordinate 
+     */
+    /**
+     * \~russian
+     * @brief Преобразовать координату в линейный вид. Обход сначала по X потом по Y в порядке увеличения
+     * 
+     * @param coord координата
+     * @return линейная координата
+     */
     uint CoordToLineByX(const Coord2D& coord) const
     {
         GRAPH_DEBUG_ASSERT(Contains(coord), "Wrong coordinates");
         return ((coord.Y() - m_min.Y()) * (m_max.X() - m_min.X() + 1) + coord.X() - m_min.X());
     }
 
+    /**
+     * \~english
+     * @brief Get string description
+     * 
+     * @return string description
+     */
+    /**
+     * \~russian
+     * @brief Получить строковое описание
+     * 
+     * @return строковое описание
+     */
     std::string ToStr() const
     {
         std::string res;
@@ -179,7 +333,8 @@ class NeighborhoodHex
   private:
 };
 
-template <typename TNode = Node<Coord2D>, typename TNeighborhood = NeighborhoodMoore>
+template <typename TNode, typename TNeighborhood,
+          typename TConnectedComponentWatch = ConnectedComponentWatchFalse<TNode, Edge<TNode>>>
 class Area2D
 {
   public:
@@ -220,8 +375,7 @@ class Area2D
             if (m_map[m_range.CoordToLineByY(coord)] != 0)
                 return;
             m_map[m_range.CoordToLineByY(coord)] = 1;
-            auto node                            = new TNode(coord);
-            m_graph.Add(node);
+            auto node                            = m_graph.MakeNode(coord);
 
             const auto neighbours = TNeighborhood::NeighbourCoordinates(coord, m_range);
             for (auto const& neighbour : neighbours)
@@ -229,10 +383,7 @@ class Area2D
                 if (m_map[m_range.CoordToLineByY(neighbour)] == 0)
                     continue;
                 auto node2 = m_graph.Find(neighbour);
-                auto edge  = new Edge<TNode>(node, node2);
-                node->AddEdge(edge);
-                node2->AddEdge(edge);
-                m_graph.Add(edge);
+                m_graph.MakeEdge(node, node2);
             }
         }
         else
@@ -247,8 +398,8 @@ class Area2D
     }
 
     std::string ToStrASCII(
-        GG::PathFindContext<TNode, Edge<TNode>, DirectedFalse<Edge<TNode>>, WeightedFalse<Edge<TNode>>, NamedFalse>*
-            path_find_context = nullptr) const
+        GG::PathFindContext<TNode, Edge<TNode>, DirectedFalse<Edge<TNode>>, WeightedFalse<Edge<TNode>>,
+                            TConnectedComponentWatch, NamedFalse>* path_find_context = nullptr) const
     {
         std::string res;
         res.reserve(m_map.size() + m_range.MaxY() + 1);
@@ -303,7 +454,9 @@ class Area2D
   private:
     Range2D m_range;
     std::vector<int> m_map;
-    GraphInclusive<TNode, Edge<TNode>, DirectedFalse<Edge<TNode>>, WeightedFalse<Edge<TNode>>, NamedFalse> m_graph;
+    GraphInclusive<TNode, Edge<TNode>, DirectedFalse<Edge<TNode>>, WeightedFalse<Edge<TNode>>, TConnectedComponentWatch,
+                   NamedFalse>
+        m_graph;
 };
 }  // namespace GG
 

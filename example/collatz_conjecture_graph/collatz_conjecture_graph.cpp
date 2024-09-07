@@ -8,7 +8,8 @@
 
 using Node_t  = GG::Node<uint64_t>;
 using Edge_t  = GG::Edge<Node_t>;
-using Graph_t = GG::GraphInclusive<Node_t, Edge_t, GG::DirectedTrue<Edge_t>, GG::WeightedFalse<Edge_t>, GG::NamedTrue>;
+using Graph_t = GG::GraphInclusive<Node_t, Edge_t, GG::DirectedTrue<Edge_t>, GG::WeightedFalse<Edge_t>,
+                                   GG::ConnectedComponentWatchFalse<Node_t, Edge_t>, GG::NamedTrue>;
 
 void CheckNumber(uint64_t num, Graph_t& graph)
 {
@@ -21,8 +22,7 @@ void CheckNumber(uint64_t num, Graph_t& graph)
 
     if (num == 1)
     {
-        node = new Node_t(num);
-        graph.Add(node);
+        graph.MakeNode(num);
         return;
     }
 
@@ -41,8 +41,7 @@ void CheckNumber(uint64_t num, Graph_t& graph)
                 graph.MakeEdge(prev_node, node, true);
                 return;
             }
-            node = new Node_t(num);
-            graph.Add(node);
+            auto* node = graph.MakeNode(num);
             if (prev_node != nullptr)
                 graph.MakeEdge(prev_node, node, true);
             prev_node = node;

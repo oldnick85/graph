@@ -18,6 +18,7 @@ template <typename R, typename... Args>
 R return_type_of(R (*)(Args...));
 
 /**
+ * \~english
  * @brief Graph class that stores nodes and edges
  * 
  * @tparam TNodeId node id type
@@ -26,8 +27,19 @@ R return_type_of(R (*)(Args...));
  * @tparam TDirected directed graph property
  * @tparam TWeighted weighted graph property
  */
-template <typename TNode, typename TEdge, typename TDirected, typename TWeighted, typename TNamed>
-class GraphInclusive : private TDirected, private TWeighted, private TNamed
+/**
+ * \~russian
+ * @brief Класс графа, хранящий в себе вершигны и рёбра
+ * 
+ * @tparam TNodeId тип идентификатора вершины
+ * @tparam TNode тип вершины
+ * @tparam TEdge тип ребра
+ * @tparam TDirected свойство направленности графа
+ * @tparam TWeighted свойство взвешенности графа
+ */
+template <typename TNode, typename TEdge, typename TDirected, typename TWeighted, typename TConnectedComponentWatch,
+          typename TNamed>
+class GraphInclusive : private TDirected, private TWeighted, private TNamed, public TConnectedComponentWatch
 {
   public:
     using TNodeId = TNode::NodeId_t;
@@ -44,25 +56,26 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed
         return node;
     }
 
-    /**
-     * @brief Add node
-     * 
-     * @param node node
-     */
-    void Add(TNode* node)
-    {
-        GRAPH_DEBUG_ASSERT(node != nullptr, "Null node");
-        m_nodes.emplace(node->Id(), node);
-    }
-
     const std::unordered_map<TNodeId, TNode*>& Nodes() const { return m_nodes; }
 
-    void MakeEdge(TNode* node1, TNode* node2, bool directed = false)
+    TEdge* MakeEdge(TNodeId node1_id, TNodeId node2_id, bool directed = false)
+    {
+        auto node1 = Find(node1_id);
+        if (node1 == nullptr)
+            return nullptr;
+        auto node2 = Find(node2_id);
+        if (node2 == nullptr)
+            return nullptr;
+        return MakeEdge(node1, node2, directed);
+    }
+
+    TEdge* MakeEdge(TNode* node1, TNode* node2, bool directed = false)
     {
         auto* edge = new TEdge(node1, node2, directed);
-        Add(edge);
         node1->AddEdge(edge);
         node2->AddEdge(edge);
+        Add(edge);
+        return edge;
     }
 
     void Del(const TNodeId& id)
@@ -80,25 +93,14 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed
         if (node_it == m_nodes.end())
             return;
         GRAPH_DEBUG_ASSERT(node == node_it->second, "Wrong nodes in graph");
-        for (auto edge : node->Edges())
+        std::vector<TEdge*> edges = node->Edges();
+        for (auto edge : edges)
         {
-            auto node2 = (edge->Nodes().first != node) ? edge->Nodes().first : edge->Nodes().second;
-            node2->DelEdge(edge);
-            m_edges.erase(edge);
+            Del(edge);
         }
         m_nodes.erase(node_it);
+        TConnectedComponentWatch::onDel(node);
         delete node;
-    }
-
-    /**
-     * @brief Add edge
-     * 
-     * @param edge edge
-     */
-    void Add(TEdge* edge)
-    {
-        GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
-        m_edges.insert(edge);
     }
 
     void Del(TEdge* edge)
@@ -106,11 +108,28 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed
         GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
         auto node1 = edge->Nodes().first;
         GRAPH_DEBUG_ASSERT(node1 != nullptr, "Null node in edge");
+        GRAPH_DEBUG_ASSERT(Find(node1->Id()) != nullptr, "No node id in graph");
+        GRAPH_DEBUG_ASSERT(Find(node1->Id()) == node1, "No node in graph");
         node1->DelEdge(edge);
         auto node2 = edge->Nodes().second;
         GRAPH_DEBUG_ASSERT(node2 != nullptr, "Null node in edge");
+        GRAPH_DEBUG_ASSERT(Find(node2->Id()) != nullptr, "No node id in graph");
+        GRAPH_DEBUG_ASSERT(Find(node2->Id()) == node2, "No node in graph");
         node2->DelEdge(edge);
         m_edges.erase(edge);
+        TConnectedComponentWatch::onDel(edge);
+        delete edge;
+    }
+
+    void DelEdgesTo(TNodeId node_from_id, TNodeId node_to_id)
+    {
+        auto node_from = Find(node_from_id);
+        if (node_from == nullptr)
+            return;
+        auto node_to = Find(node_to_id);
+        if (node_to == nullptr)
+            return;
+        DelEdgesTo(node_from, node_to);
     }
 
     void DelEdgesTo(TNode* node_from, TNode* node_to)
@@ -139,16 +158,28 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed
         }
     }
 
+    void DelEdgesBetween(TNodeId node1_id, TNodeId node2_id)
+    {
+        auto node1 = Find(node1_id);
+        if (node1 == nullptr)
+            return;
+        auto node2 = Find(node2_id);
+        if (node2 == nullptr)
+            return;
+        DelEdgesBetween(node1, node2);
+    }
+
     void DelEdgesBetween(TNode* node1, TNode* node2)
     {
         GRAPH_DEBUG_ASSERT(node1 != nullptr, "Null node 1");
         GRAPH_DEBUG_ASSERT(node2 != nullptr, "Null node 2");
         auto edges = node1->Edges();
-        std::vector<TEdge> edges_to_delete;
+        std::vector<TEdge*> edges_to_delete;
         edges_to_delete.reserve(edges.size());
         for (auto edge : edges)
         {
-            if ((edge->Nodes().second == node1) or (edge->Nodes().second == node2))
+            if (((edge->Nodes().first == node1) and (edge->Nodes().second == node2)) or
+                ((edge->Nodes().first == node2) and (edge->Nodes().second == node1)))
                 edges_to_delete.push_back(edge);
         }
         for (auto edge : edges_to_delete)
@@ -207,7 +238,7 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed
         return true;
     }
 
-    void DeleteAll()
+    void Clear()
     {
         for (const auto& node_el : m_nodes)
         {
@@ -220,6 +251,7 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed
             delete edge;
         }
         m_edges.clear();
+        TConnectedComponentWatch::Clear();
     }
 
     std::string ToDOT() const
@@ -246,6 +278,18 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed
         return str;
     }
 
+    /**
+     * \~english
+     * @brief Get string description
+     * 
+     * @return string description
+     */
+    /**
+     * \~russian
+     * @brief Получить строковое описание
+     * 
+     * @return строковое описание
+     */
     std::string ToStr() const
     {
         std::string str{"GraphInclusive("};
@@ -264,6 +308,30 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed
     }
 
   private:
+    /**
+     * @brief Add node
+     * 
+     * @param node node
+     */
+    void Add(TNode* node)
+    {
+        GRAPH_DEBUG_ASSERT(node != nullptr, "Null node");
+        m_nodes.emplace(node->Id(), node);
+        TConnectedComponentWatch::onAdd(node);
+    }
+
+    /**
+     * @brief Add edge
+     * 
+     * @param edge edge
+     */
+    void Add(TEdge* edge)
+    {
+        GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
+        m_edges.insert(edge);
+        TConnectedComponentWatch::onAdd(edge);
+    }
+
     std::string ToStrNodeEdges(TNode* node) const
     {
         std::string str{"edges "};

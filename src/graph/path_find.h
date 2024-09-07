@@ -31,6 +31,18 @@ class Path
 
     const std::list<TNode*>& Nodes() const { return m_nodes; }
 
+    /**
+     * \~english
+     * @brief Get string description
+     * 
+     * @return string description
+     */
+    /**
+     * \~russian
+     * @brief Получить строковое описание
+     * 
+     * @return строковое описание
+     */
     std::string ToStr() const
     {
         std::string str{"Path"};
@@ -69,16 +81,64 @@ class PathFindNode
     float m_distance = 0.0;
 
   public:
+    /**
+     * \~english
+     * @brief Get node identificator
+     * 
+     * @return node identificator
+     */
+    /**
+     * \~russian
+     * @brief Получить идентификатор узла
+     * 
+     * @return идентификатор узла
+     */
     const NodeId_t& Id() const { return m_node->Id(); }
 
+    /**
+     * \~english
+     * @brief Add edge
+     * 
+     * @param edge edge
+     */
+    /**
+     * \~russian
+     * @brief Добавить ребро
+     * 
+     * @param edge ребро
+     */
     void AddEdge(Edge_t* edge)
     {
         GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
         m_edges.push_back(edge);
     }
 
+    /**
+     * \~english
+     * @brief Get edges for this node
+     * 
+     * @return edges for this node
+     */
+    /**
+     * \~russian
+     * @brief Получить рёбра этой вершины
+     * 
+     * @return рёбра этой вершины
+     */
     const std::vector<Edge_t*>& Edges() const { return m_edges; }
 
+    /**
+     * \~english
+     * @brief Get string description
+     * 
+     * @return string description
+     */
+    /**
+     * \~russian
+     * @brief Получить строковое описание
+     * 
+     * @return строковое описание
+     */
     std::string ToStr() const { return m_node->ToStr(); }
 
   private:
@@ -104,6 +164,18 @@ class Forefront
 
     bool Empty() const { return m_pnodes.empty(); }
 
+    /**
+     * \~english
+     * @brief Get string description
+     * 
+     * @return string description
+     */
+    /**
+     * \~russian
+     * @brief Получить строковое описание
+     * 
+     * @return строковое описание
+     */
     std::string ToStr() const
     {
         std::string str{"Forefront\n"};
@@ -123,27 +195,28 @@ class Forefront
     float m_max_distance = 0.0;
 };
 
-template <typename TNode, typename TEdge, typename TDirected, typename TWeighted, typename TNamed>
+template <typename TNode, typename TEdge, typename TDirected, typename TWeighted, typename TConnectedComponentWatch,
+          typename TNamed>
 class PathFindContext
 {
   public:
     using PNode_t     = PathFindNode<TNode>;
     using PEdge_t     = Edge<PNode_t>;
     using Path_t      = Path<TNode>;
-    using Graph_t     = GraphInclusive<TNode, TEdge, TDirected, TWeighted, TNamed>;
-    using GraphWave_t = GraphInclusive<PNode_t, PEdge_t, DirectedTrue<PEdge_t>, WeightedFalse<PEdge_t>, NamedFalse>;
+    using Graph_t     = GraphInclusive<TNode, TEdge, TDirected, TWeighted, TConnectedComponentWatch, TNamed>;
+    using GraphWave_t = GraphInclusive<PNode_t, PEdge_t, GG::DirectedTrue<PEdge_t>, WeightedFalse<PEdge_t>,
+                                       ConnectedComponentWatchFalse<PNode_t, PEdge_t>, NamedFalse>;
     using Forefront_t = Forefront<TNode>;
 
     PathFindContext(const Graph_t* graph, TNode* start) : m_graph(graph), m_start(start)
     {
         GRAPH_DEBUG_ASSERT(m_graph != nullptr, "Null graph");
         GRAPH_DEBUG_ASSERT(m_start != nullptr, "Null start");
-        auto pnode = new PNode_t{m_start, 0.0};
+        auto pnode = m_wave.MakeNode(m_start, 0.0);
         m_forefront.Add(pnode);
-        m_wave.Add(pnode);
     }
 
-    ~PathFindContext() { m_wave.DeleteAll(); }
+    ~PathFindContext() { m_wave.Clear(); }
 
     TNode* Start() const { return m_start; }
 
@@ -164,13 +237,9 @@ class PathFindContext
                     node2 = edge->Nodes().second;
                 if (m_wave.Find(node2->Id()) != nullptr)
                     continue;
-                auto new_pnode = new PNode_t{node2, dist};
+                auto new_pnode = m_wave.MakeNode(node2, dist);
                 new_forefront.Add(new_pnode);
-                m_wave.Add(new_pnode);
-                auto new_edge = new PEdge_t{new_pnode, pnode, true};
-                pnode->AddEdge(new_edge);
-                new_pnode->AddEdge(new_edge);
-                m_wave.Add(new_edge);
+                m_wave.MakeEdge(new_pnode, pnode, true);
             }
         }
         m_forefront = std::move(new_forefront);
@@ -207,6 +276,8 @@ class PathFindContext
     Path_t FindPathTo(TNode* target)
     {
         Path_t path;
+        if (m_graph->SurelyNotConnected(m_start, target))
+            return path;
         while (not Exhausted())
         {
             Step();
@@ -233,6 +304,18 @@ class PathFindContext
         return path;
     }
 
+    /**
+     * \~english
+     * @brief Get string description
+     * 
+     * @return string description
+     */
+    /**
+     * \~russian
+     * @brief Получить строковое описание
+     * 
+     * @return строковое описание
+     */
     std::string ToStr() const
     {
         std::string str{"PathFindContext\n"};

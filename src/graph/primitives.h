@@ -45,6 +45,18 @@ class Node
     const std::vector<Edge<Node>*>& Edges() const { return m_edges; }
     const TNodeId& Id() const { return m_id; }
 
+    /**
+     * \~english
+     * @brief Get string description
+     * 
+     * @return string description
+     */
+    /**
+     * \~russian
+     * @brief Получить строковое описание
+     * 
+     * @return строковое описание
+     */
     std::string ToStr() const { return Id2Str(m_id); }
 
   private:
@@ -67,6 +79,12 @@ class Edge
     }
 
     const std::pair<Node_t*, Node_t*>& Nodes() const { return m_nodes; }
+    Node_t* OtherNode(Node_t* not_this_node) const
+    {
+        GRAPH_DEBUG_ASSERT((m_nodes.first == not_this_node) or (m_nodes.second == not_this_node), "Node not in edge");
+        return (m_nodes.first == not_this_node) ? m_nodes.second : m_nodes.first;
+    }
+
     float Weight() const { return m_weight; }
     bool Directed() const { return m_directed; }
 
