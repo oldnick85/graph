@@ -1,15 +1,16 @@
 // Copyright 2024 oldnick85
 
 #include <array>
-
-#include <graph_inclusive.h>
-#include <primitives.h>
 #include <cstdint>
+
+#include "./graph_inclusive.h"
+#include "./primitives.h"
+#include "./properties/all.h"
 
 using Node_t  = GG::Node<uint64_t>;
 using Edge_t  = GG::Edge<Node_t>;
-using Graph_t = GG::GraphInclusive<Node_t, Edge_t, GG::DirectedTrue<Edge_t>, GG::WeightedFalse<Edge_t>,
-                                   GG::ConnectedComponentWatchFalse<Node_t, Edge_t>, GG::NamedTrue>;
+using Graph_t = GG::GraphInclusive<Node_t, Edge_t, GG::Directed<Edge_t, true>, GG::Weighted<Edge_t, false>,
+                                   GG::ConnectedComponentWatch<Node_t, Edge_t, false>, GG::Named<true>>;
 
 void CheckNumber(uint64_t num, Graph_t& graph)
 {

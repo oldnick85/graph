@@ -7,6 +7,7 @@
 
 #include "./graph_inclusive.h"
 #include "./primitives.h"
+#include "./properties/all.h"
 
 namespace GG
 {
@@ -204,8 +205,8 @@ class PathFindContext
     using PEdge_t     = Edge<PNode_t>;
     using Path_t      = Path<TNode>;
     using Graph_t     = GraphInclusive<TNode, TEdge, TDirected, TWeighted, TConnectedComponentWatch, TNamed>;
-    using GraphWave_t = GraphInclusive<PNode_t, PEdge_t, GG::DirectedTrue<PEdge_t>, WeightedFalse<PEdge_t>,
-                                       ConnectedComponentWatchFalse<PNode_t, PEdge_t>, NamedFalse>;
+    using GraphWave_t = GraphInclusive<PNode_t, PEdge_t, GG::Directed<PEdge_t, true>, Weighted<PEdge_t, false>,
+                                       ConnectedComponentWatch<PNode_t, PEdge_t, false>, Named<false>>;
     using Forefront_t = Forefront<TNode>;
 
     PathFindContext(const Graph_t* graph, TNode* start) : m_graph(graph), m_start(start)
@@ -225,6 +226,18 @@ class PathFindContext
         if (Exhausted())
             return;
 
+        if (Graph_t::IsWeighted)
+        {
+            GRAPH_DEBUG_ASSERT(false, "Not implemented");
+        }
+        else
+        {
+            StepWaveAlgorithm();
+        }
+    }
+
+    void StepWaveAlgorithm()
+    {
         Forefront_t new_forefront;
         const float dist = m_forefront.MaxDistance() + 1.0;
         for (PNode_t* pnode : m_forefront.Nodes())
@@ -324,6 +337,20 @@ class PathFindContext
         str += m_wave.ToStr();
         str += m_forefront.ToStr();
         return str;
+    }
+
+    std::string ToDOT() const
+    {
+        auto node_printer = [&](TNode* node) -> std::string {
+            const auto id = node->Id();
+            auto pnode    = m_wave.Find(id);
+            std::string str;
+            str += Id2Str(id);
+            if (pnode != nullptr)
+                str += std::string(" d=") + std::to_string(pnode->Distance());
+            return str;
+        };
+        return m_graph->ToDOT(node_printer);
     }
 
   private:

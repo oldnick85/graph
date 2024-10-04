@@ -5,7 +5,8 @@
 #include <string>
 #include <vector>
 
-#include <path_find.h>
+#include "./path_find.h"
+#include "./properties/all.h"
 
 namespace GG
 {
@@ -334,7 +335,7 @@ class NeighborhoodHex
 };
 
 template <typename TNode, typename TNeighborhood,
-          typename TConnectedComponentWatch = ConnectedComponentWatchFalse<TNode, Edge<TNode>>>
+          typename TConnectedComponentWatch = ConnectedComponentWatch<TNode, Edge<TNode>, false>>
 class Area2D
 {
   public:
@@ -397,9 +398,59 @@ class Area2D
         GRAPH_DEBUG_ASSERT(m_graph.CheckCorrect(), "Incorrect graph");
     }
 
+    std::string ToStrLatex(
+        GG::PathFindContext<TNode, Edge<TNode>, Directed<Edge<TNode>, false>, Weighted<Edge<TNode>, false>,
+                            TConnectedComponentWatch, Named<false>>* path_find_context = nullptr) const
+    {
+        std::string str;
+        str += R"GG(\begin{tikzpicture}[every node/.style={minimum size=1.0cm-\pgflinewidth, outer sep=0pt}])GG";
+        str += "\n";
+        str += R"GG(  \draw[step=1.0cm,color=black] (-1,-1) grid ()GG";
+        str += std::to_string(m_range.MaxX() - m_range.MinX()) + "," + std::to_string(m_range.MaxY() - m_range.MinY()) +
+               ");";
+        str += "\n";
+        for (int y = m_range.MinY(); y <= m_range.MaxY(); ++y)
+        {
+            for (int x = m_range.MinX(); x <= m_range.MaxX(); ++x)
+            {
+                if (m_map[m_range.CoordToLineByY(Coord2D(x, y))] == 0)
+                {
+                    str += R"GG(  \node[fill=black] at ()GG";
+                    str += std::to_string(static_cast<float>(x - m_range.MinX()) - 0.5);
+                    str += ",";
+                    str += std::to_string(static_cast<float>(y - m_range.MinY()) - 0.5);
+                    str += R"GG() {};)GG";
+                    str += "\n";
+                }
+                else
+                {
+                    if (path_find_context == nullptr)
+                    {
+                    }
+                    else
+                    {
+                        auto dist = static_cast<int>(path_find_context->DistanceTo(m_graph.Find(Coord2D(x, y))));
+                        dist %= 100;
+                        str += R"GG(  \node[fill=green] at ()GG";
+                        str += std::to_string(static_cast<float>(x - m_range.MinX()) - 0.5);
+                        str += ",";
+                        str += std::to_string(static_cast<float>(y - m_range.MinY()) - 0.5);
+                        str += R"GG() {)GG";
+                        str += std::to_string(dist);
+                        str += R"GG(};)GG";
+                        str += "\n";
+                    }
+                }
+            }
+        }
+        str += R"GG(\end{tikzpicture})GG";
+        str += "\n";
+        return str;
+    }
+
     std::string ToStrASCII(
-        GG::PathFindContext<TNode, Edge<TNode>, DirectedFalse<Edge<TNode>>, WeightedFalse<Edge<TNode>>,
-                            TConnectedComponentWatch, NamedFalse>* path_find_context = nullptr) const
+        GG::PathFindContext<TNode, Edge<TNode>, Directed<Edge<TNode>, false>, Weighted<Edge<TNode>, false>,
+                            TConnectedComponentWatch, Named<false>>* path_find_context = nullptr) const
     {
         std::string res;
         res.reserve(m_map.size() + m_range.MaxY() + 1);
@@ -454,8 +505,8 @@ class Area2D
   private:
     Range2D m_range;
     std::vector<int> m_map;
-    GraphInclusive<TNode, Edge<TNode>, DirectedFalse<Edge<TNode>>, WeightedFalse<Edge<TNode>>, TConnectedComponentWatch,
-                   NamedFalse>
+    GraphInclusive<TNode, Edge<TNode>, Directed<Edge<TNode>, false>, Weighted<Edge<TNode>, false>,
+                   TConnectedComponentWatch, Named<false>>
         m_graph;
 };
 }  // namespace GG

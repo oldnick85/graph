@@ -13,9 +13,11 @@
 
 using Coord_t = GG::Coord2D;
 using Node_t  = GG::Node<Coord_t>;
+template <typename TNeighborhood>
+using Area_t = GG::Area2D<Node_t, TNeighborhood, GG::ConnectedComponentWatch<Node_t, GG::Edge<Node_t>, false>>;
 
 template <typename TNeighborhood>
-uint CalcInTouch(const GG::Area2D<Node_t, TNeighborhood>& area, const Coord_t& max_coord, const Coord_t& start_coord)
+uint CalcInTouch(const Area_t<TNeighborhood>& area, const Coord_t& max_coord, const Coord_t& start_coord)
 {
     GG::PathFindContext path_find_context{&(area.Graph()), area.Graph().Find(start_coord)};
     path_find_context.SpreadWave();
@@ -49,8 +51,8 @@ Coord_t NextCoord(const Coord_t& coord, const Coord_t& max_coord)
 }
 
 template <typename TNeighborhood>
-bool Next(GG::Area2D<Node_t, TNeighborhood>& area, const Coord_t& coord, const Coord_t& max_coord,
-          const Coord_t& start_coord, uint& impassables)
+bool Next(Area_t<TNeighborhood>& area, const Coord_t& coord, const Coord_t& max_coord, const Coord_t& start_coord,
+          uint& impassables)
 {
     if (coord == start_coord)
     {
@@ -81,10 +83,10 @@ template <typename TNeighborhood>
 void Search(const Coord_t& max_coord, const Coord_t& start_coord)
 {
     GG::Range2D range(max_coord);
-    GG::Area2D<Node_t, TNeighborhood> area(range);
+    Area_t<TNeighborhood> area(range);
     area.SetPassableAll(true);
     uint max_in_touch     = 0;
-    uint cycle_count      = 0;
+    uint64_t cycle_count  = 0;
     const auto time_start = std::chrono::steady_clock::now();
     uint impassables      = 0;
     while (true)
@@ -95,6 +97,8 @@ void Search(const Coord_t& max_coord, const Coord_t& start_coord)
             break;
         if (impassables < max_in_touch)
             continue;
+        if (area.Graph().ConnectedComponentsCount() > 1)
+            continue;
         const auto in_touch = CalcInTouch<TNeighborhood>(area, max_coord, start_coord);
         if (in_touch >= max_in_touch)
         {
@@ -103,7 +107,7 @@ void Search(const Coord_t& max_coord, const Coord_t& start_coord)
             const uint time_ms  = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
             constexpr uint MsInSec             = 1000;
             const uint speed_cycles_per_second = (cycle_count * MsInSec) / (time_ms == 0 ? 1 : time_ms);
-            printf("Found new best position: in_touch=%i; cycles=%d c; time=%d s;speed=%d cps;\n", in_touch,
+            printf("Found new best position: in_touch=%i; cycles=%lu c; time=%d s;speed=%d cps;\n", in_touch,
                    cycle_count, time_ms / MsInSec, speed_cycles_per_second);
             printf("%s\n", area.ToStrASCII().c_str());
         }
@@ -112,7 +116,7 @@ void Search(const Coord_t& max_coord, const Coord_t& start_coord)
     const uint time_ms     = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
     constexpr uint MsInSec = 1000;
     const uint speed_cycles_per_second = (cycle_count * MsInSec) / time_ms;
-    printf("\nTOTAL: cycles=%d c; time=%d s;speed=%d cps;\n", cycle_count, time_ms / MsInSec, speed_cycles_per_second);
+    printf("\nTOTAL: cycles=%lu c; time=%d s;speed=%d cps;\n", cycle_count, time_ms / MsInSec, speed_cycles_per_second);
 }
 
 int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv)

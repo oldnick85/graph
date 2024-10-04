@@ -9,113 +9,17 @@
 namespace GG
 {
 
-template <typename TEdge>
-class DirectedTrue
-{
-  public:
-    static inline bool Directed() { return true; }
-    static inline bool GetDirected(const TEdge* edge)
-    {
-        GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
-        return edge->Directed();
-    }
-};
-
-template <typename TEdge>
-class DirectedFalse
-{
-  public:
-    static inline bool Directed() { return false; }
-    static inline bool GetDirected([[maybe_unused]] const TEdge* edge)
-    {
-        GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
-        return false;
-    }
-};
-
-template <typename TEdge>
-class WeightedTrue
-{
-  public:
-    /**
-     * \~english 
-     * @brief Get edge weight
-     * 
-     * @param edge edge
-     * @return weight
-     */
-    /**
-     * \~russian 
-     * @brief Получить вес ребра
-     * 
-     * @param edge ребро
-     * @return вес
-     */
-    static inline float GetWeight(const TEdge* edge)
-    {
-        GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
-        return edge->Weight();
-    }
-};
-
-template <typename TEdge>
-class WeightedFalse
-{
-  public:
-    /**
-     * \~english 
-     * @brief Get edge weight
-     * 
-     * @param edge edge
-     * @return weight
-     */
-    /**
-     * \~russian 
-     * @brief Получить вес ребра
-     * 
-     * @param edge ребро
-     * @return вес
-     */
-    static inline float GetWeight([[maybe_unused]] const TEdge* edge)
-    {
-        GRAPH_DEBUG_ASSERT(edge != nullptr, "Null edge");
-        return 1.0;
-    }
-};
-
-class NamedTrue
-{
-  public:
-    NamedTrue() = default;
-    NamedTrue(const std::string& name) : m_name(name) { GRAPH_DEBUG_ASSERT(not m_name.empty(), "Empty graph name"); }
-    std::string GetName() const { return m_name; }
-
-  private:
-    std::string m_name;
-};
-
-class NamedFalse
-{
-  public:
-    NamedFalse() = default;
-    NamedFalse(__attribute__((unused)) const std::string& name) {}
-    std::string GetName() const
-    {
-        std::array<char, 16> str;
-        snprintf(str.data(), str.size(), "%p", this);
-        return str.data();
-    }
-};
+template <typename TNode, typename TEdge, bool IsWatching>
+class ConnectedComponentWatch
+{};
 
 template <typename TNode, typename TEdge>
-class ConnectedComponentWatchTrue
+class ConnectedComponentWatch<TNode, TEdge, true>
 {
   public:
     static constexpr int ComponentIdNone = -1;
     using NodesSet_t                     = std::unordered_set<TNode*>;
     using Components_t                   = std::unordered_map<int, NodesSet_t>;
-
-    ConnectedComponentWatchTrue() = default;
 
     int ConnectedComponentsCount() const { return m_connected_components.size(); }
 
@@ -321,11 +225,9 @@ class ConnectedComponentWatchTrue
 };
 
 template <typename TNode, typename TEdge>
-class ConnectedComponentWatchFalse
+class ConnectedComponentWatch<TNode, TEdge, false>
 {
   public:
-    ConnectedComponentWatchFalse() = default;
-
     int ConnectedComponentsCount() const { return -1; }
 
     bool SurelyConnected([[maybe_unused]] TNode* node1, [[maybe_unused]] TNode* node2) const { return false; }

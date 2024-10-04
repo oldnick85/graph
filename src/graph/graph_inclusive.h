@@ -3,13 +3,13 @@
 #pragma once
 
 #include <algorithm>
+#include <functional>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "./common.h"
-#include "./graph_properties.h"
 
 namespace GG
 {
@@ -39,7 +39,7 @@ R return_type_of(R (*)(Args...));
  */
 template <typename TNode, typename TEdge, typename TDirected, typename TWeighted, typename TConnectedComponentWatch,
           typename TNamed>
-class GraphInclusive : private TDirected, private TWeighted, private TNamed, public TConnectedComponentWatch
+class GraphInclusive : public TDirected, public TWeighted, public TNamed, public TConnectedComponentWatch
 {
   public:
     using TNodeId = TNode::NodeId_t;
@@ -254,26 +254,109 @@ class GraphInclusive : private TDirected, private TWeighted, private TNamed, pub
         TConnectedComponentWatch::Clear();
     }
 
-    std::string ToDOT() const
+    std::string ToDOT_Body() const
     {
         std::string str;
-        if (TDirected::Directed())
-            str += "di";
-        str += "graph ";
-        str += TNamed::GetName();
-        str += " {\n";
         for (const auto& node_el : m_nodes)
         {
             const auto& node = node_el.second;
-            str += Id2Str(node->Id()) + ";\n";
+            str += std::to_string(reinterpret_cast<u_int64_t>(node)) + " [label=\"" + Id2Str(node->Id()) + "\"];\n";
         }
         for (const auto& edge : m_edges)
         {
             const auto node1           = edge->Nodes().first;
             const auto node2           = edge->Nodes().second;
             const std::string edge_str = TDirected::GetDirected(edge) ? " -> " : " -- ";
-            str += Id2Str(node1->Id()) + edge_str + Id2Str(node2->Id()) + ";\n";
+            str += std::to_string(reinterpret_cast<u_int64_t>(node1)) + edge_str +
+                   std::to_string(reinterpret_cast<u_int64_t>(node2)) + ";\n";
         }
+        return str;
+    }
+
+    std::string ToDOT_Body(std::function<std::string(TNode*)> node_printer) const
+    {
+        std::string str;
+        for (const auto& node_el : m_nodes)
+        {
+            const auto& node = node_el.second;
+            str += std::to_string(reinterpret_cast<u_int64_t>(node)) + " [label=\"" + node_printer(node) + "\"];\n";
+        }
+        for (const auto& edge : m_edges)
+        {
+            const auto node1           = edge->Nodes().first;
+            const auto node2           = edge->Nodes().second;
+            const std::string edge_str = TDirected::GetDirected(edge) ? " -> " : " -- ";
+            str += std::to_string(reinterpret_cast<u_int64_t>(node1)) + edge_str +
+                   std::to_string(reinterpret_cast<u_int64_t>(node2)) + ";\n";
+        }
+        return str;
+    }
+
+    std::string ToDOT() const
+    {
+        std::string str;
+        if (TDirected::IsDirected)
+            str += "di";
+        str += "graph \"";
+        str += TNamed::GetName();
+        str += "\" {\n";
+        str += ToDOT_Body();
+        str += "}\n";
+        return str;
+    }
+
+    std::string ToDOT(std::function<std::string(TNode*)> node_printer) const
+    {
+        std::string str;
+        if (TDirected::IsDirected)
+            str += "di";
+        str += "graph \"";
+        str += TNamed::GetName();
+        str += "\" {\n";
+        str += ToDOT_Body(node_printer);
+        str += "}\n";
+        return str;
+    }
+
+    std::string ToLatexDOT() const
+    {
+        std::string str;
+        /*
+        if (TDirected::IsDirected)
+            str += R"GG(\digraph{)GG";
+        else
+            str += R"GG(\graph{)GG";
+        */
+        str += R"GG(\digraph{)GG";
+        str += TNamed::GetName() + std::to_string(abs(rand()));
+        str += "}{\n";
+        str += "rankdir=TB;\n";
+        str += ToDOT_Body();
+        str += "}\n";
+
+        const std::string replace_word = " -- ";
+        const std::string replace_by   = " -> ";
+        size_t pos                     = str.find(replace_word);
+        while (pos != std::string::npos)
+        {
+            str.replace(pos, replace_word.size(), replace_by);
+            pos = str.find(replace_word, pos + replace_by.size());
+        }
+
+        return str;
+    }
+
+    std::string ToLatexDOT(std::function<std::string(TNode*)> node_printer) const
+    {
+        std::string str;
+        if (TDirected::IsDirected)
+            str += R"GG(\digraph{)GG";
+        else
+            str += R"GG(\graph{)GG";
+        str += TNamed::GetName();
+        str += "{\n";
+        str += "rankdir=LR;\n";
+        str += ToDOT_Body(node_printer);
         str += "}\n";
         return str;
     }

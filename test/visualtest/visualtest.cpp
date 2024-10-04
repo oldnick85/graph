@@ -1,6 +1,8 @@
 // Copyright 2024 oldnick85
 
 #include <array>
+#include <cstring>
+#include <fstream>
 
 #include <area.h>
 #include <graph_inclusive.h>
@@ -8,41 +10,52 @@
 #include <primitives.h>
 
 // NOLINTBEGIN
-void Test_GraphInclusive_Base()
+void Test_GraphInclusive_Base(std::string& latex_str)
 {
+    latex_str += R"GG(\section{Graph Inclusive: Base})GG";
+    latex_str += "\n";
     using Node_t = GG::Node<int>;
     using Edge_t = GG::Edge<Node_t>;
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>,
-                       GG::ConnectedComponentWatchFalse<Node_t, Edge_t>, GG::NamedFalse>
+    GG::GraphInclusive<Node_t, Edge_t, GG::Directed<Edge_t, false>, GG::Weighted<Edge_t, false>,
+                       GG::ConnectedComponentWatch<Node_t, Edge_t, false>, GG::Named<false>>
         graph;
     graph.MakeNode(1);
     graph.MakeNode(2);
     graph.MakeEdge(1, 2);
     printf("%s\n", graph.ToStr().c_str());
+    latex_str += graph.ToLatexDOT();
 }
 
-void Test_GraphInclusive_ConnectionComponent()
+void Test_GraphInclusive_ConnectionComponent(std::string& latex_str)
 {
+    latex_str += R"GG(\section{Graph Inclusive: Connection Component})GG";
+    latex_str += "\n";
     using Node_t = GG::Node<int>;
     using Edge_t = GG::Edge<Node_t>;
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>,
-                       GG::ConnectedComponentWatchTrue<Node_t, Edge_t>, GG::NamedFalse>
+    GG::GraphInclusive<Node_t, Edge_t, GG::Directed<Edge_t, false>, GG::Weighted<Edge_t, false>,
+                       GG::ConnectedComponentWatch<Node_t, Edge_t, true>, GG::Named<false>>
         graph;
     graph.MakeNode(1);
     graph.MakeNode(2);
     graph.MakeEdge(1, 2);
     printf("%s\n", graph.ToStr().c_str());
     printf("connected=%u\n", graph.ConnectedComponentsCount());
+    latex_str += graph.ToLatexDOT();
+    latex_str += std::string("\nconnected=") + std::to_string(graph.ConnectedComponentsCount()) + "\n";
 
     graph.MakeNode(3);
     graph.MakeNode(4);
     graph.MakeEdge(3, 4);
     printf("%s\n", graph.ToStr().c_str());
     printf("connected=%u\n", graph.ConnectedComponentsCount());
+    latex_str += graph.ToLatexDOT();
+    latex_str += std::string("\nconnected=") + std::to_string(graph.ConnectedComponentsCount()) + "\n";
 
     graph.MakeEdge(1, 3);
     printf("%s\n", graph.ToStr().c_str());
     printf("connected=%u\n", graph.ConnectedComponentsCount());
+    latex_str += graph.ToLatexDOT();
+    latex_str += std::string("\nconnected=") + std::to_string(graph.ConnectedComponentsCount()) + "\n";
 
     graph.MakeEdge(2, 4);
     printf("%s\n", graph.ToStr().c_str());
@@ -73,12 +86,14 @@ void Test_GraphInclusive_ConnectionComponent()
     printf("connected=%u\n", graph.ConnectedComponentsCount());
 }
 
-void Test_GraphInclusive_DOT()
+void Test_GraphInclusive_DOT(std::string& latex_str)
 {
+    latex_str += R"GG(\section{Graph Inclusive: DOT})GG";
+    latex_str += "\n";
     using Node_t = GG::Node<std::string>;
     using Edge_t = GG::Edge<Node_t>;
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>,
-                       GG::ConnectedComponentWatchFalse<Node_t, Edge_t>, GG::NamedFalse>
+    GG::GraphInclusive<Node_t, Edge_t, GG::Directed<Edge_t, false>, GG::Weighted<Edge_t, false>,
+                       GG::ConnectedComponentWatch<Node_t, Edge_t, false>, GG::Named<false>>
         graph;
     graph.MakeNode("a");
     graph.MakeNode("b");
@@ -89,8 +104,10 @@ void Test_GraphInclusive_DOT()
     printf("%s\n", graph.ToDOT().c_str());
 }
 
-void Test_GraphInclusive_BasePathFind()
+void Test_GraphInclusive_BasePathFind(std::string& latex_str)
 {
+    latex_str += R"GG(\section{Graph Inclusive: Base Path Find})GG";
+    latex_str += "\n";
     using Node_t = GG::Node<int>;
     using Edge_t = GG::Edge<Node_t>;
     /*
@@ -100,8 +117,8 @@ void Test_GraphInclusive_BasePathFind()
     *        \ |     \
     *          4 - 6 - 7 - 8
     */
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>,
-                       GG::ConnectedComponentWatchFalse<Node_t, Edge_t>, GG::NamedFalse>
+    GG::GraphInclusive<Node_t, Edge_t, GG::Directed<Edge_t, false>, GG::Weighted<Edge_t, false>,
+                       GG::ConnectedComponentWatch<Node_t, Edge_t, false>, GG::Named<false>>
         graph;
     std::array<Node_t*, 10> node;
     for (int i = 0; i < static_cast<int>(node.size()); ++i)
@@ -131,19 +148,25 @@ void Test_GraphInclusive_BasePathFind()
 
     path_find_context.Step();
     printf("%s\n", path_find_context.ToStr().c_str());
+    printf("%s\n", path_find_context.ToDOT().c_str());
 
     path_find_context.Step();
     printf("%s\n", path_find_context.ToStr().c_str());
 
     path_find_context.Step();
     printf("%s\n", path_find_context.ToStr().c_str());
+
+    latex_str += graph.ToLatexDOT();
+    latex_str += std::string("\n") + "\n";
 
     auto path = path_find_context.PathTo(node[8]);
     printf("%s\n", path.ToStr().c_str());
 }
 
-void Test_Area2D_BaseMoore()
+void Test_Area2D_BaseMoore(std::string& latex_str)
 {
+    latex_str += R"GG(\section{Area 2D: Base Moore})GG";
+    latex_str += "\n";
     using Node_t = GG::Node<GG::Coord2D>;
     GG::Area2D<Node_t, GG::NeighborhoodMoore> area(GG::Range2D(GG::Coord2D(4, 3)));
     area.SetPassable({1, 2}, true);
@@ -165,10 +188,14 @@ void Test_Area2D_BaseMoore()
     auto path = path_find_context.FindPathTo(area.Graph().Find(GG::Coord2D(4, 3)));
     printf("%s\n", path.ToStr().c_str());
     printf("%s\n", area.ToStrASCII(&path_find_context).c_str());
+    latex_str += area.ToStrLatex();
+    latex_str += std::string("\n") + "\n";
 }
 
-void Test_Area2D_BaseVonNeumann()
+void Test_Area2D_BaseVonNeumann(std::string& latex_str)
 {
+    latex_str += R"GG(\section{Area 2D: Base Von Neumann})GG";
+    latex_str += "\n";
     using Node_t = GG::Node<GG::Coord2D>;
     GG::Area2D<Node_t, GG::NeighborhoodVonNeumann> area(GG::Range2D(GG::Coord2D(4, 3)));
     area.SetPassable({1, 2}, true);
@@ -190,10 +217,14 @@ void Test_Area2D_BaseVonNeumann()
     auto path = path_find_context.FindPathTo(area.Graph().Find(GG::Coord2D(4, 3)));
     printf("%s\n", path.ToStr().c_str());
     printf("%s\n", area.ToStrASCII(&path_find_context).c_str());
+    latex_str += area.ToStrLatex(&path_find_context);
+    latex_str += std::string("\n") + "\n";
 }
 
-void Test_Area2D_BaseHex()
+void Test_Area2D_BaseHex(std::string& latex_str)
 {
+    latex_str += R"GG(\section{Area 2D: Base Hex})GG";
+    latex_str += "\n";
     using Node_t = GG::Node<GG::Coord2D>;
     GG::Area2D<Node_t, GG::NeighborhoodHex> area(GG::Range2D(GG::Coord2D(4, 3)));
     area.SetPassable({1, 2}, true);
@@ -215,17 +246,72 @@ void Test_Area2D_BaseHex()
     auto path = path_find_context.FindPathTo(area.Graph().Find(GG::Coord2D(4, 3)));
     printf("%s\n", path.ToStr().c_str());
     printf("%s\n", area.ToStrASCII(&path_find_context).c_str());
+    latex_str += area.ToStrLatex();
+    latex_str += std::string("\n") + "\n";
 }
 
 int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv)
 {
-    Test_GraphInclusive_Base();
-    Test_GraphInclusive_DOT();
-    Test_GraphInclusive_BasePathFind();
-    Test_Area2D_BaseMoore();
-    Test_Area2D_BaseVonNeumann();
-    Test_Area2D_BaseHex();
-    Test_GraphInclusive_ConnectionComponent();
+    std::string desc;
+    desc += "  -h,--help            print usage information and exit\n";
+    desc += "  -latex-file FILE     file for LaTeX output\n";
+    int arg_i = 1;
+    std::string latex_file;
+    while (arg_i < argc)
+    {
+        auto* arg = argv[arg_i];
+        printf("%d: %s\n", arg_i, arg);
+        if ((std::strcmp(arg, "--help") == 0) or (std::strcmp(arg, "-h") == 0))
+        {
+            printf("%s/n", desc.c_str());
+            return 0;
+        }
+        if (std::strcmp(arg, "-latex-file") == 0)
+        {
+            ++arg_i;
+            if (arg_i >= argc)
+            {
+                printf("Incomplete argument '-max-x': exit\n");
+                return 1;
+            }
+            arg        = argv[arg_i];
+            latex_file = arg;
+        }
+        ++arg_i;
+    }
+
+    std::string latex_str;
+    latex_str += R"GG(\documentclass[12pt, letterpaper]{article})GG";
+    latex_str += "\n";
+    latex_str += R"GG(\usepackage[pdf]{graphviz})GG";
+    latex_str += "\n";
+    latex_str += R"GG(\usepackage[utf8]{inputenc})GG";
+    latex_str += "\n";
+    latex_str += R"GG(\usepackage{tikz})GG";
+    latex_str += "\n";
+    latex_str += R"GG(\usetikzlibrary{shapes})GG";
+    latex_str += "\n";
+    latex_str += R"GG(\begin{document})GG";
+    latex_str += "\n";
+    Test_GraphInclusive_Base(latex_str);
+    Test_GraphInclusive_DOT(latex_str);
+    Test_GraphInclusive_BasePathFind(latex_str);
+    Test_Area2D_BaseMoore(latex_str);
+    Test_Area2D_BaseVonNeumann(latex_str);
+    Test_Area2D_BaseHex(latex_str);
+    Test_GraphInclusive_ConnectionComponent(latex_str);
+    latex_str += R"GG(\end{document})GG";
+    latex_str += "\n";
+    if (latex_str.empty())
+    {
+        printf("\n\n%s\n", latex_str.c_str());
+    }
+    else
+    {
+        std::ofstream ofs(latex_file, std::ofstream::out);
+        ofs << latex_str;
+        ofs.close();
+    }
     return 0;
 }
 // NOLINTEND

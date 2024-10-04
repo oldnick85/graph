@@ -4,18 +4,18 @@
 
 #include <gtest/gtest.h>
 
-#include <area.h>
-#include <graph_inclusive.h>
-#include <path_find.h>
-#include <primitives.h>
+#include "./area.h"
+#include "./graph_inclusive.h"
+#include "./path_find.h"
+#include "./primitives.h"
 
 // NOLINTBEGIN
 TEST(GraphInclusive, Base)
 {
     using Node_t = GG::Node<int>;
     using Edge_t = GG::Edge<Node_t>;
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>,
-                       GG::ConnectedComponentWatchFalse<Node_t, Edge_t>, GG::NamedFalse>
+    GG::GraphInclusive<Node_t, Edge_t, GG::Directed<Edge_t, false>, GG::Weighted<Edge_t, false>,
+                       GG::ConnectedComponentWatch<Node_t, Edge_t, false>, GG::Named<false>>
         graph;
     auto* node1 = graph.MakeNode(1);
     ASSERT_EQ(graph.Find(1), node1);
@@ -31,8 +31,8 @@ TEST(GraphInclusive, ConnectionComponent)
 {
     using Node_t = GG::Node<int>;
     using Edge_t = GG::Edge<Node_t>;
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>,
-                       GG::ConnectedComponentWatchTrue<Node_t, Edge_t>, GG::NamedFalse>
+    GG::GraphInclusive<Node_t, Edge_t, GG::Directed<Edge_t, false>, GG::Weighted<Edge_t, false>,
+                       GG::ConnectedComponentWatch<Node_t, Edge_t, true>, GG::Named<false>>
         graph;
     ASSERT_EQ(graph.ConnectedComponentsCount(), 0);
     /*
@@ -220,8 +220,8 @@ TEST(GraphInclusive, BasePathFind)
     *        \ |     \
     *          4 - 6 - 7 - 8
     */
-    GG::GraphInclusive<Node_t, Edge_t, GG::DirectedFalse<Edge_t>, GG::WeightedFalse<Edge_t>,
-                       GG::ConnectedComponentWatchFalse<Node_t, Edge_t>, GG::NamedFalse>
+    GG::GraphInclusive<Node_t, Edge_t, GG::Directed<Edge_t, false>, GG::Weighted<Edge_t, false>,
+                       GG::ConnectedComponentWatch<Node_t, Edge_t, false>, GG::Named<false>>
         graph;
     std::array<Node_t*, 10> node;
     for (int i = 0; i < static_cast<int>(node.size()); ++i)
